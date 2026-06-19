@@ -8,6 +8,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../../utilities/jwt.js";
+import userService from "../users/user.service.js";
 
 
 const generateOtp = async (email: string) => {
@@ -44,6 +45,12 @@ const generateOtp = async (email: string) => {
 
 const verifyOTP = async (email: string, otp: string) => {
   try {
+     const user = await userService.find(email);
+
+    if (!user) {
+      throw authResponses.USER_NOT_FOUND;
+    }
+
     const originalOTP = await redis.get(`OTP:${email}`);
 
     if (!originalOTP) {
@@ -54,20 +61,17 @@ const verifyOTP = async (email: string, otp: string) => {
       throw authResponses.INVALID_OTP;
     }
 
-    const user = await userRepo.findOne(email);
-
-    if (!user) {
-      throw authResponses.USER_NOT_FOUND;
-    }
+   
 
     await redis.del(`OTP:${email}`);
 
-    if (user.password_version === 0) {
-      return {
-        requiresPasswordSetup: true,
-        userId: user.id,
-      };
-    }
+    // for FrontEnd to know if user needs to setup password or not
+    // if (user.password_version === 0) {
+    //   return {
+    //     requiresPasswordSetup: true,
+    //     userId: user.id,
+    //   };
+    // }
 
     if (!user.id) {
       throw new Error("UserId missing");
@@ -75,15 +79,15 @@ const verifyOTP = async (email: string, otp: string) => {
 
     const userId = user.id;
     const companyId = user.company_id;
-
-    const accessToken = await generateAccessToken(
+    console.log(userId);
+    const accessToken = generateAccessToken(
       userId,
       companyId,
       user.role,
       user.password_version,
     );
 
-    const refreshToken = await generateRefreshToken(userId);
+    const refreshToken = generateRefreshToken(userId);
 
     // await refreshTokenRepo.create({
     //   userId: user.id,
@@ -104,6 +108,7 @@ const verifyOTP = async (email: string, otp: string) => {
     };
 
   } catch (e) {
+    console.log(e);
     throw e;
   }
 };

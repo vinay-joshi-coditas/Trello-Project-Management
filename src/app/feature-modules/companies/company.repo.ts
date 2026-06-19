@@ -1,45 +1,49 @@
 import { Op } from "sequelize";
-import { Company } from "./companies.schema.js";
+import { Company } from "./company.schema.js";
 import type { company } from "./company.types.js";
 
-const add = (company: Omit<company, "id">) => Company.create(company)
+const add = (company: Omit<company, "id">) => Company.create(company);
 
 const findAll = () => Company.findAll();
 
-const search = async(query: any) => {
-    try {
-        const{search, sortBy, filter, sortOrder = 'ASC', limit} = query;
-        const queryObject : any = {};
-        if(search) {
-            queryObject.name = {
-                [Op.iLike]: `${search}%`
-            }
-        }
-        if(filter) {
-            queryObject.subscription_type = filter
-        }
-
-        return await Company.findAll({
-            where: queryObject,
-            order: [[sortBy, sortOrder]],
-            limit
-        })
-
-    } catch (error) {
-        console.log(error);
-        
-        throw error;
+const search = async (query: any) => {
+  try {
+    const { search, sortBy, filter, sortOrder = "ASC", limit } = query;
+    const queryObject: any = {};
+    if (search) {
+      queryObject.name = {
+        [Op.iLike]: `${search}%`,
+      };
     }
-}
+    if (filter) {
+      queryObject.subscription_type = filter;
+    }
 
-const update = (id: string, company: Omit<Partial<company>, "id">) => Company.update(company, {where: {id}})
+    return await Company.findAll({
+      where: queryObject,
+      order: [[sortBy, sortOrder]],
+      limit,
+    });
+  } catch (error) {
+    console.log(error);
 
-const deleteById = (id: string) => Company.destroy({where: {id}});
+    throw error;
+  }
+};
 
-export default{
-    add,
-    findAll,
-    search,
-    update,
-    deleteById
-}
+const update = (id: string, company: Omit<Partial<company>, "id" | "createdAt" | "updatedAt">) =>
+  Company.update(company, { where: { id } });
+
+const archive = (id: string) =>
+  Company.update({ is_Archived: true }, { where: { id } });
+
+const deleteById = (id: string) => Company.destroy({ where: { id } });
+
+export default {
+  add,
+  findAll,
+  search,
+  update,
+  archive,
+  deleteById,
+};

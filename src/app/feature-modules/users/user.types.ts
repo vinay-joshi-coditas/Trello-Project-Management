@@ -8,6 +8,7 @@ export const ZUser = z.object({
   role: z.string(),
   company_id: z.string().min(1),
   password_version: z.number(),
+  createdBy: z.string()
 });
 
 export type User = z.infer<typeof ZUser>;

@@ -2,84 +2,67 @@ import {
   DataTypes,
   Model,
   type CreationOptional,
-  type ForeignKey,
   type InferAttributes,
   type InferCreationAttributes,
 } from "sequelize";
 import { sequelize } from "../../connections/pg.connection.js";
-import { Company } from "../companies/company.schema.js";
 
-export class Users extends Model<
-  InferAttributes<Users>,
-  InferCreationAttributes<Users>
+export class Company extends Model<
+  InferAttributes<Company>,
+  InferCreationAttributes<Company>
 > {
   declare id: CreationOptional<string>;
   declare name: string;
-  declare email: string;
-  declare password: string;
-  declare company_id: ForeignKey<Company["id"]>;
-  declare password_version: number;
-  declare role: string;
+  declare subscription_type: string;
+  declare logo: string;
+  declare is_Archived: boolean;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare createdBy: CreationOptional<string>;
 }
-
-Users.init(
+Company.init(
   {
     id: {
       type: DataTypes.UUID,
       defaultValue: () => crypto.randomUUID(),
       primaryKey: true,
-      allowNull: false
     },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    email: {
+    subscription_type: {
+      type: DataTypes.ENUM("Basic", "Half features", "All features"),
+      allowNull: false,
+    },
+    logo: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    password: {
-      type: DataTypes.STRING,
+    is_Archived: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
-    },
-    company_id: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      references: { model: Company, key: "id" },
-      onDelete: "CASCADE",
-      onUpdate: "CASCADE",
-    },
-    password_version: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    role: {
-      type: DataTypes.ENUM("SuperAdmin", "CompanyAdmin", "Member"),
-      allowNull: false,
+      defaultValue: false,
     },
     createdAt: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
     updatedAt: {
-      allowNull: true,
+      allowNull: false,
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
-    createdBy: {
-      allowNull: true,
+    createdBy: {  
+      allowNull: false,
       type: DataTypes.UUID,
       references: { model: "users", key: "id" },
-    },
+    }
   },
   {
     sequelize,
-    tableName: "users",
+    tableName: "companies",
     timestamps: true,
   },
 );

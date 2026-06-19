@@ -9,3 +9,18 @@ export const sqsClient = new SQSClient({
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
+
+export const sendOtpMessage = async (email: string, otp: string) => {
+  await sqsClient.send(
+    new SendMessageCommand({
+      QueueUrl: env.EMAIL_QUEUE_URL,
+
+      MessageBody: JSON.stringify({
+        type: "OTP",
+        email,
+        otp,
+      }),
+    }),
+  );
+};

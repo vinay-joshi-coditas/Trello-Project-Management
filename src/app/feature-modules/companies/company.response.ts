@@ -1,4 +1,4 @@
-export const companyResponse: Record<"COMPANY_CREATED" | "COMPANY_DELETED" | "COMPANY_UPDATED", {statusCode: number, message: string} > = {
+export const companyResponse: Record<"COMPANY_CREATED" | "COMPANY_DELETED" | "COMPANY_UPDATED" | "COMPANY_ARCHIVED", {statusCode: number, message: string} > = {
     COMPANY_CREATED: {
         statusCode: 201,
         message: "Company created successfully."
@@ -11,5 +11,9 @@ export const companyResponse: Record<"COMPANY_CREATED" | "COMPANY_DELETED" | "CO
     COMPANY_UPDATED: {
         statusCode: 200,
         message: "Company updated successfully"
+    },
+    COMPANY_ARCHIVED: {
+        statusCode: 200,
+        message: "Company archived successfully"
     }
 }

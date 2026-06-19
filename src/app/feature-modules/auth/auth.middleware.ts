@@ -10,7 +10,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 
         const token = authHeader?.split(" ")[1] || req.cookies.accessToken;
 
-        console.log(token);
+        // console.log(token);
         
 
         if (!token) {
@@ -22,11 +22,11 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
         const decoded = verifyToken(token);
 
         (req as any).user = {
-            id: decoded.id,
+            id: decoded.userId,
             role: decoded.role,
             companyId: decoded.companyId
         }
-
+        console.log((req as any).user);
         next();
   
     } catch (error) {
