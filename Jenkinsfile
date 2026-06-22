@@ -193,17 +193,5 @@ az webapp restart \
 }
 }
 
-post {
-success {
-echo "Version ${env.APP_VERSION} deployed successfully."
-}
 
-failure {
-echo "Deployment failed. Check Jenkins logs."
-}
-
-always {
-cleanWs()
-}
-}
 }
