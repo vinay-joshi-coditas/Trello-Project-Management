@@ -11,6 +11,11 @@ AZURE_SUBSCRIPTION_ID = credentials('azure_subscription_id')
 // Required because Jenkins runs migrations
 DATABASE_URL = credentials('db_url')
 
+ DB_USERNAME = credentials('dbv_username')
+    DB_PASSWORD = credentials('dbv_password')
+    DB_NAME     = credentials('dbv_name')
+    DB_HOST     = credentials('dbv_host')
+
 // Azure Resources
 AZURE_RESOURCE_GROUP = 'testvinaybe'
 APP_SERVICE_NAME = 'VinayBE'
