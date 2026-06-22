@@ -9,7 +9,7 @@ AZURE_TENANT_ID = credentials('azure-tenant-id')
 AZURE_SUBSCRIPTION_ID = credentials('azure_subscription_id')
 
 // Required because Jenkins runs migrations
-DATABASE_URL = credentials('database_url')
+//DATABASE_URL = credentials('database_url')
 
 // Azure Resources
 AZURE_RESOURCE_GROUP = 'testvinaybe'
@@ -151,7 +151,7 @@ process.exit(1);
 stage('Run Sequelize Migrations') {
 steps {
 sh '''
-export DATABASE_URL="$DATABASE_URL"
+
 
 npx sequelize-cli db:migrate
 '''
