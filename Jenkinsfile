@@ -40,16 +40,6 @@ git fetch --tags || true
 }
 }
 
-stage('Verify Main Branch') {
-when {
-not {
-branch 'main'
-}
-}
-steps {
-error('Deployment is allowed only from the main branch.')
-}
-}
 
 stage('Calculate Version') {
 steps {
