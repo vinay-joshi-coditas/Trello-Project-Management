@@ -12,8 +12,8 @@ AZURE_SUBSCRIPTION_ID = credentials('azure_subscription_id')
 DATABASE_URL = credentials('database_url')
 
 // Azure Resources
-AZURE_RESOURCE_GROUP = 'trello-rg'
-APP_SERVICE_NAME = 'trello-api'
+AZURE_RESOURCE_GROUP = 'testvinaybe'
+APP_SERVICE_NAME = 'VinayBE'
 
 // Versioning
 VERSION_FILE = '.version'
