@@ -104,6 +104,7 @@ steps {
 sh '''
 npm install -g pnpm
 pnpm --version
+pnpm add -D typescript
 '''
 }
 }
