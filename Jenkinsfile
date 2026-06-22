@@ -2,12 +2,30 @@ pipeline {
 agent any
 
 environment {
-RESOURCE_GROUP = "kanban-project-rg"
-APP_NAME = "kanban-backend-app"
+// Azure Service Principal
+AZURE_CLIENT_ID = credentials('azure_client_id')
+AZURE_CLIENT_SECRET = credentials('azure_client_secret')
+AZURE_TENANT_ID = credentials('azure-tenant-id')
+AZURE_SUBSCRIPTION_ID = credentials('azure_subscription_id')
+
+// Required because Jenkins runs migrations
+DATABASE_URL = credentials('database_url')
+
+// Azure Resources
+AZURE_RESOURCE_GROUP = 'trello-rg'
+APP_SERVICE_NAME = 'trello-api'
+
+// Versioning
+VERSION_FILE = '.version'
 }
 
 tools {
-nodejs "NodeJS-22"
+nodejs 'NodeJS-20'
+}
+
+options {
+disableConcurrentBuilds()
+timestamps()
 }
 
 stages {
@@ -15,108 +33,185 @@ stages {
 stage('Checkout') {
 steps {
 checkout scm
+
+sh '''
+git fetch --tags || true
+'''
 }
 }
 
-stage('Install PNPM') {
+stage('Verify Main Branch') {
+when {
+not {
+branch 'main'
+}
+}
+steps {
+error('Deployment is allowed only from the main branch.')
+}
+}
+
+stage('Calculate Version') {
+steps {
+script {
+def commitMsg = sh(
+script: 'git log -1 --pretty=%B',
+returnStdout: true
+).trim()
+
+def currentVersion = fileExists(VERSION_FILE)
+? readFile(VERSION_FILE).trim()
+: "1.0.0"
+
+def parts = currentVersion.tokenize('.')
+
+int major = parts[0].toInteger()
+int minor = parts[1].toInteger()
+int patch = parts[2].toInteger()
+
+if (commitMsg.contains('BREAKING CHANGE')) {
+major++
+minor = 0
+patch = 0
+} else if (commitMsg.startsWith('feat:')) {
+minor++
+patch = 0
+} else if (commitMsg.startsWith('fix:')) {
+patch++
+} else {
+patch++
+}
+
+env.APP_VERSION = "${major}.${minor}.${patch}"
+
+writeFile(
+file: VERSION_FILE,
+text: env.APP_VERSION
+)
+
+echo "Deploying version ${env.APP_VERSION}"
+}
+}
+}
+
+stage('Azure Login') {
+steps {
+sh '''
+az login \
+--service-principal \
+--username "$AZURE_CLIENT_ID" \
+--password "$AZURE_CLIENT_SECRET" \
+--tenant "$AZURE_TENANT_ID"
+
+az account set \
+--subscription "$AZURE_SUBSCRIPTION_ID"
+'''
+}
+}
+
+stage('Install pnpm') {
 steps {
 sh '''
 npm install -g pnpm
+pnpm --version
 '''
 }
 }
 
 stage('Install Dependencies') {
 steps {
-sh 'pnpm install --frozen-lockfile'
-}
-}
-
-stage('Build') {
-steps {
-sh 'pnpm build'
-}
-}
-
-stage('Package') {
-steps {
 sh '''
-zip -r app.zip \
-dist \
-package.json \
-pnpm-lock.yaml \
-.swcrc
+pnpm install --frozen-lockfile
 '''
 }
 }
 
-stage('Azure Login') {
+stage('Build Application') {
 steps {
-withCredentials([
-string(credentialsId: 'AZURE_CLIENT_ID', variable: 'CLIENT_ID'),
-string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'CLIENT_SECRET'),
-string(credentialsId: 'AZURE_TENANT_ID', variable: 'TENANT_ID'),
-string(credentialsId: 'AZURE_SUBSCRIPTION_ID', variable: 'SUBSCRIPTION_ID')
-]) {
-
 sh '''
-az login --service-principal \
---username $CLIENT_ID \
---password $CLIENT_SECRET \
---tenant $TENANT_ID
-
-az account set \
---subscription $SUBSCRIPTION_ID
+pnpm build
 '''
 }
 }
-}
 
-stage('Configure App Settings') {
+stage('Verify Database Connectivity') {
 steps {
-withCredentials([
-string(credentialsId: 'DATABASE_URL', variable: 'DATABASE_URL'),
-string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
-string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
-string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
-string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
-string(credentialsId: 'SES_FROM_EMAIL', variable: 'SES_FROM_EMAIL')
-]) {
-
 sh '''
-az webapp config appsettings set \
---resource-group $RESOURCE_GROUP \
---name $APP_NAME \
---settings \
-DATABASE_URL="$DATABASE_URL" \
-REDIS_HOST="$REDIS_HOST" \
-REDIS_PORT="$REDIS_PORT" \
-JWT_SECRET="$JWT_SECRET" \
-AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
-AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
-AWS_REGION="$AWS_REGION" \
-SES_FROM_EMAIL="$SES_FROM_EMAIL"
+node -e "
+const { Client } = require('pg');
+
+const client = new Client({
+connectionString: process.env.DATABASE_URL
+});
+
+client.connect()
+.then(() => {
+console.log('PostgreSQL connection successful');
+return client.end();
+})
+.catch(err => {
+console.error(err);
+process.exit(1);
+});
+"
 '''
 }
 }
-}
 
-stage('Deploy') {
+stage('Run Sequelize Migrations') {
 steps {
 sh '''
-az webapp deploy \
---resource-group $RESOURCE_GROUP \
---name $APP_NAME \
---src-path app.zip \
---type zip
+export DATABASE_URL="$DATABASE_URL"
+
+npx sequelize-cli db:migrate
+'''
+}
+}
+
+stage('Package Application') {
+steps {
+sh '''
+zip -r app.zip . \
+-x ".git/*" \
+-x ".github/*" \
+-x "node_modules/*" \
+-x ".env*" \
+-x "*.log"
+'''
+}
+}
+
+stage('Deploy to App Service') {
+steps {
+sh '''
+az webapp deployment source config-zip \
+--resource-group "$AZURE_RESOURCE_GROUP" \
+--name "$APP_SERVICE_NAME" \
+--src app.zip
+'''
+}
+}
+
+stage('Restart App Service') {
+steps {
+sh '''
+az webapp restart \
+--resource-group "$AZURE_RESOURCE_GROUP" \
+--name "$APP_SERVICE_NAME"
 '''
 }
 }
 }
 
 post {
+success {
+echo "Version ${env.APP_VERSION} deployed successfully."
+}
+
+failure {
+echo "Deployment failed. Check Jenkins logs."
+}
+
 always {
 cleanWs()
 }
