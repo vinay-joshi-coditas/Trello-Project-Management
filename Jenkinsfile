@@ -9,7 +9,7 @@ AZURE_TENANT_ID = credentials('azure-tenant-id')
 AZURE_SUBSCRIPTION_ID = credentials('azure_subscription_id')
 
 // Required because Jenkins runs migrations
-DATABASE_URL = credentials('database_url')
+DATABASE_URL = credentials('db_url')
 
 // Azure Resources
 AZURE_RESOURCE_GROUP = 'testvinaybe'
