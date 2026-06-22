@@ -1,0 +1,27 @@
+.PrimaryBtn {
+    padding: 0.5rem 0.75rem;
+    border: thin solid black;
+    color: blue;
+    background-color: white;
+    cursor: pointer;
+    &:hover {
+        color: white;
+        background-color: blue;
+        transition: all 0.5s ease;
+    }
+}
+
+
+.SecondaryBtn {
+    padding: 0.5rem 0.75rem;
+    border: thin solid red;
+    color: red;
+    background-color: white;
+    cursor: pointer;
+    &:hover {
+        color: white;
+        background-color: red;
+        transition: all 0.5s ease;
+
+    }
+}
