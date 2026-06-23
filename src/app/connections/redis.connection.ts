@@ -2,11 +2,11 @@ import { createClient } from "redis";
 
 export const redis = createClient({
   socket: {
-    host: process.env.REDIS_HOST ? parseInt(process.env.REDIS_HOST) : undefined,
-    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : undefined,
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
     tls: true
   },
-  password: process.env.REDIS_PASSWORD ? parseInt(process.env.REDIS_PASSWORD) : undefined,
+  password: process.env.REDIS_PASSWORD,
 });
 
 redis.on("error", (err) => {
