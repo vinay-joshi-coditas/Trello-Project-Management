@@ -4,7 +4,9 @@ import styles from "./SuperAdminDashboard.module.scss";
 const SuperAdminDashboard = () => {
   return (
     <>
-        Companies
+        <div className={styles.SuperAdminDashboard}>
+
+        </div>
     </>
   )
 }

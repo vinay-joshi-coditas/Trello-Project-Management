@@ -1,19 +1,18 @@
 import { apiSlice } from "./apiSlice";
-const API = `${import.meta.env.VITE_BASE_URL}`
 
 
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints : (builder) => ({
         getOTP: builder.mutation({
             query: (data) => ({
-                url: `${API}auth/generateOTP`,
+                url: `auth/generateOTP`,
                 method: 'POST',
                 body: data
             })
         }) ,
         verifyOTP: builder.mutation({
             query: (data) => ({
-                url: `${API}auth/Login`,
+                url:`auth/Login`,
                 method: 'POST',
                 body: data
             })

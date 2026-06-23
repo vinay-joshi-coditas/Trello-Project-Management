@@ -18,7 +18,6 @@ const reducer = (state:InitialState, action:{ type:string }) => {
      default:
       return state
   }
-
 }
 
 const LandingPage = () => {
