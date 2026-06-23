@@ -1,0 +1,17 @@
+.Header {
+    padding: 1rem;
+    border-bottom: 1px solid white;
+    background-color: #00012a;
+    color: white;
+}
+
+.Logo {
+    display: flex;
+}
+
+.Logo h2 {
+    &:hover {
+        color: orange;
+        cursor: pointer;
+    }
+}

@@ -1,0 +1,70 @@
+@use "../../styles/mixin" as *;
+
+.LandingPage {
+    display: flex;
+}
+
+.Container {
+   display: grid;
+   grid-template-columns: auto 1fr;
+   min-width: 100vw;
+}
+
+.Box {
+    @include flexBox;
+    flex-direction: column;
+}
+
+.TextBox {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    gap: 1rem;
+}
+
+.TextBoxHeading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.TextBox h2, .TextBox h3 {
+    font-size: 2rem
+}
+
+.LoginBox {
+    @include flexBox;
+    flex-direction:column;
+    gap: 1rem;
+    min-width: 100%;
+}
+
+.LoginForm {
+    min-width: 30%;
+}
+
+.LoginBoxInput {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+}
+
+.LoginBox input {
+    padding: 0.5rem;
+    min-width: 80%;
+}
+
+.LoginBtn {
+    background-color: #00012a;
+    color: white;
+    padding: 0.75rem;
+}
+
+.ImageContainer {
+    @include flexBox;
+    justify-content: start;
+}
+
+
